@@ -50,7 +50,7 @@ svg text{pointer-events:none}
 <div class="charts">
   <div class="card"><h2>نسبة الإنجاز الكلي</h2><div class="donut" id="overall"></div></div>
   <div class="card"><h2>مرحلة التصميم</h2><div id="design"></div></div>
-  <div class="card"><h2>مرحلة البرمجة</h2><div id="dev"></div></div>
+  <div class="card"><h2>مرحلة البرمجة UI</h2><div id="dev"></div></div>
 </div>
 <div class="lists" id="lists"></div>
 <div id="tip"></div>
@@ -62,7 +62,7 @@ const ST=[
  {n:"التصميم قيد التنفيذ",c:"#f07f3c"},
  {n:"اكتمال تصميم UX",c:"#8e5bd0"},
  {n:"بانتظار مراجعة التصميم",c:"#e5b200"},
- {n:"البرمجة قيد التنفيذ",c:"#2f7be0"},
+ {n:"البرمجة UI قيد التنفيذ",c:"#2f7be0"},
  {n:"اكتمال برمجة UI",c:"#2e8b57"}
 ];
 const G=[
@@ -94,9 +94,9 @@ function render(){
   const dp=all.reduce((a,x)=>a+Math.min(Math.max(val(x.id)-1,0),4)/4,0)/N;
   $("design").innerHTML=`<div class="big">${Math.round(dp*100)}%</div><div class="sub" style="margin-bottom:6px">متوسط إنجاز التصميم</div>`+rows(D,N);
   // dev
-  const V=[["لم تبدأ البرمجة",x=>x<5,"#9aa3b2"],["البرمجة قيد التنفيذ",x=>x===5,ST[5].c],["اكتمال برمجة UI",x=>x===6,ST[6].c]].map(([n,t,c])=>({n,t,c,k:all.filter(a=>t(val(a.id))).length}));
+  const V=[["لم تبدأ البرمجة UI",x=>x<5,"#9aa3b2"],["البرمجة UI قيد التنفيذ",x=>x===5,ST[5].c],["اكتمال برمجة UI",x=>x===6,ST[6].c]].map(([n,t,c])=>({n,t,c,k:all.filter(a=>t(val(a.id))).length}));
   const vp=all.reduce((a,x)=>a+(val(x.id)===6?1:val(x.id)===5?.5:0),0)/N;
-  $("dev").innerHTML=`<div class="big">${Math.round(vp*100)}%</div><div class="sub" style="margin-bottom:6px">متوسط إنجاز البرمجة</div>`+rows(V,N);
+  $("dev").innerHTML=`<div class="big">${Math.round(vp*100)}%</div><div class="sub" style="margin-bottom:6px">متوسط إنجاز البرمجة UI</div>`+rows(V,N);
   // groups
   // lists (rebuild only if no select is focused)
   if(document.activeElement&&document.activeElement.tagName==="SELECT")return;
