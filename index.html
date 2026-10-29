@@ -11,12 +11,12 @@
 :root[data-theme="dark"]{--bg:#12151d;--card:#1b202c;--ink:#e8ecf5;--mute:#9aa3b8;--line:#2c3446;--track:#2c3446}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Tajawal",system-ui,sans-serif;padding:16px;max-width:1200px;margin-inline:auto}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Tajawal",system-ui,sans-serif;padding:28px;max-width:1500px;margin-inline:auto}
 h1{font-size:26px;margin:0}h2{font-size:16px;margin:0 0 12px}
-.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:3px solid var(--acc);padding-bottom:10px;margin-bottom:16px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:3px solid var(--acc);padding-bottom:10px;margin-bottom:28px}
 .badge{font-size:13px;color:var(--mute)}
 .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
 .donut{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .donut svg{width:170px;height:170px;flex:none}
 .legend{flex:1;min-width:150px;font-size:13px}
@@ -28,26 +28,32 @@ h1{font-size:26px;margin:0}h2{font-size:16px;margin:0 0 12px}
 .big{font-size:34px;font-weight:800}
 .sub{color:var(--mute);font-size:12px}
 .gh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;color:#fff;padding:10px 14px;border-radius:10px;font-weight:700}
-.svc{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.svc{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.5}
 .svc:last-child{border:0}
-select{font:inherit;font-size:12px;padding:5px 6px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);max-width:48%}
+select{font:inherit;font-size:11px;padding:3px 4px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--ink);max-width:44%}
 .note{background:#fff3cd;color:#664d03;padding:8px 12px;border-radius:10px;font-size:13px;margin-bottom:12px;display:none}
 .wrap{overflow-x:auto}
+.charts{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:28px}
+.lists{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));align-items:start}
+.gcard{padding:0;overflow:hidden}.gcard .gh{margin:0;border-radius:0}.gcard .gp{padding:16px 18px 8px}.gcard .svcs{padding:0 18px 14px}
+.gt{font-size:13px;margin-bottom:8px}.pb{display:flex;align-items:center;gap:10px}.pb .bar{flex:1;height:9px}.pb b{font-size:13px;min-width:38px;text-align:end}
+.gcard .bar{height:9px}.gcard .bar i{background:#2e8b57}
+.bar i,circle[data-tip]{transition:opacity .15s,stroke-width .15s}.bar i:hover{opacity:.75}circle[data-tip]:hover{stroke-width:6.5}
+svg text{pointer-events:none}
+#tip{position:fixed;display:none;z-index:99;background:#1b2a4e;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
 </style>
 </head>
 <body>
 <div class="top"><h1>لوحة متابعة التقدم</h1><span class="badge" id="sync">جارٍ التحميل…</span></div>
 <div class="note" id="note">وضع المعاينة: التعديلات لن تُحفظ لأن الحفظ المشترك غير متاح لك حالياً.</div>
 
-<div class="grid">
+<div class="charts">
   <div class="card"><h2>نسبة الإنجاز الكلي</h2><div class="donut" id="overall"></div></div>
-</div>
-<div class="grid">
   <div class="card"><h2>مرحلة التصميم</h2><div id="design"></div></div>
   <div class="card"><h2>مرحلة البرمجة</h2><div id="dev"></div></div>
-  <div class="card"><h2>التقدم حسب المجموعة</h2><div id="groups"></div></div>
 </div>
-<div class="grid" id="lists"></div>
+<div class="lists" id="lists"></div>
+<div id="tip"></div>
 
 <script>
 const ST=[
@@ -73,14 +79,14 @@ const val=id=>st[id]!==undefined?st[id]:(DONE.has(id)?1:0);
 const pct=(a,b)=>b?Math.round(a/b*100):0;
 const $=id=>document.getElementById(id);
 
-function rows(items,total){return items.map(x=>`<div class="row"><div class="l"><span><span class="dot" style="background:${x.c}"></span>${x.n}</span><b>${x.k} خدمة · ${pct(x.k,total)}%</b></div><div class="bar"><i style="width:${pct(x.k,total)}%;background:${x.c}"></i></div></div>`).join("")}
+function rows(items,total){return items.map(x=>`<div class="row"><div class="l"><span><span class="dot" style="background:${x.c}"></span>${x.n}</span><b>${x.k} خدمة · ${pct(x.k,total)}%</b></div><div class="bar"><i data-tip="${x.n}: ${x.k} خدمة (${pct(x.k,total)}%)" style="width:${pct(x.k,total)}%;background:${x.c}"></i></div></div>`).join("")}
 function stack(list,groups){return groups.map(([n,f])=>{const t=f.length;return `<div class="row"><div class="l"><span>${n}</span><b>${t}</b></div><div class="bar">${list.map(s=>{const k=f.filter(x=>s.t(val(x.id))).length;return `<i title="${s.n}: ${k}" style="width:${pct(k,t)}%;background:${s.c}"></i>`}).join("")}</div></div>`}).join("")}
 
 function render(){
   const N=all.length,cnt=ST.map((_,i)=>all.filter(x=>val(x.id)===i).length);
   const prog=all.reduce((a,x)=>a+val(x.id)/6,0)/N;
   // overall donut
-  let off=0;const arcs=cnt.map((k,i)=>{const p=k/N*100,s=`<circle r="15.9155" cx="21" cy="21" fill="none" stroke="${ST[i].c}" stroke-width="5" stroke-dasharray="${p} ${100-p}" stroke-dashoffset="${-off}" transform="rotate(-90 21 21)"/>`;off+=p;return s}).join("");
+  let off=0;const arcs=cnt.map((k,i)=>{const p=k/N*100,s=`<circle r="15.9155" cx="21" cy="21" fill="none" stroke="${ST[i].c}" stroke-width="5" stroke-dasharray="${p} ${100-p}" data-tip="${ST[i].n}: ${k} خدمة (${Math.round(p)}%)" stroke-dashoffset="${-off}" transform="rotate(-90 21 21)"/>`;off+=p;return s}).join("");
   $("overall").innerHTML=`<svg viewBox="0 0 42 42"><circle r="15.9155" cx="21" cy="21" fill="none" stroke="var(--track)" stroke-width="5"/>${arcs}<text x="21" y="22.5" text-anchor="middle" font-size="8" font-weight="800" fill="var(--ink)">${Math.round(prog*100)}%</text><text x="21" y="28" text-anchor="middle" font-size="2.8" fill="var(--mute)">الإنجاز الكلي</text></svg>
   <div class="legend">${ST.map((s,i)=>`<div><span><span class="dot" style="background:${s.c}"></span>${s.n}</span><b>${cnt[i]}</b></div>`).join("")}<div class="sub">من إجمالي ${N} خدمة · الإنجاز محسوب بحسب موقع كل خدمة في مسار المراحل</div></div>`;
   // design
@@ -92,16 +98,18 @@ function render(){
   const vp=all.reduce((a,x)=>a+(val(x.id)===6?1:val(x.id)===5?.5:0),0)/N;
   $("dev").innerHTML=`<div class="big">${Math.round(vp*100)}%</div><div class="sub" style="margin-bottom:6px">متوسط إنجاز البرمجة</div>`+rows(V,N);
   // groups
-  $("groups").innerHTML=G.map(g=>{const f=all.filter(x=>x.g===g),p=f.reduce((a,x)=>a+val(x.id)/6,0)/f.length;return `<div class="row"><div class="l"><span>${g.n} (${f.length})</span><b>${Math.round(p*100)}%</b></div><div class="bar"><i style="width:${p*100}%;background:${g.c}"></i></div></div>`}).join("");
   // lists (rebuild only if no select is focused)
   if(document.activeElement&&document.activeElement.tagName==="SELECT")return;
-  $("lists").innerHTML=G.map(g=>`<div class="card"><div class="gh" style="background:${g.c}"><span>${g.n}</span><span>${all.filter(x=>x.g===g&&val(x.id)===6).length}/${g.s.length} مكتملة UI</span></div>`+all.filter(x=>x.g===g).map(x=>`<div class="svc"><span>${x.id.slice(1)}. ${x.n}</span><select data-id="${x.id}" style="border-inline-start:4px solid ${ST[val(x.id)].c}">${ST.map((s,i)=>`<option value="${i}"${i===val(x.id)?" selected":""}>${s.n}</option>`).join("")}</select></div>`).join("")+`</div>`).join("");
+  $("lists").innerHTML=G.map(g=>{const f=all.filter(x=>x.g===g),d=f.filter(x=>val(x.id)===6).length,p=f.reduce((a,x)=>a+val(x.id)/6,0)/f.length;return `<div class="card gcard"><div class="gh" style="background:${g.c}"><span>${g.n}</span><span>(${f.length})</span></div><div class="gp"><div class="gt">اكتمال ${d} من ${f.length}</div><div class="pb"><div class="bar"><i data-tip="تقدم ${g.n}: ${Math.round(p*100)}%" style="width:${p*100}%"></i></div><b>${Math.round(p*100)}%</b></div></div><div class="svcs">`+f.map(x=>`<div class="svc"><span>${x.id.slice(1)}. ${x.n}</span><select data-id="${x.id}" style="border-inline-start:4px solid ${ST[val(x.id)].c}">${ST.map((s,i)=>`<option value="${i}"${i===val(x.id)?" selected":""}>${s.n}</option>`).join("")}</select></div>`).join("")+`</div></div>`}).join("");
 }
 document.addEventListener("change",async e=>{
   const s=e.target.closest("select[data-id]");if(!s)return;
   const id=s.dataset.id,v=+s.value;st[id]=v;s.blur();render();
   if(col){try{await col.doc(id).set({s:v});$("sync").textContent="تم الحفظ ✓"}catch(err){$("sync").textContent="تعذر الحفظ — قد لا تملك صلاحية التعديل"}}
 });
+const tip=$("tip");
+function showTip(e){const t=e.target.closest&&e.target.closest("[data-tip]");if(!t){tip.style.display="none";return}tip.textContent=t.getAttribute("data-tip");tip.style.display="block";tip.style.left=Math.max(6,Math.min(e.clientX+12,innerWidth-tip.offsetWidth-8))+"px";tip.style.top=(e.clientY+16)+"px"}
+document.addEventListener("pointermove",showTip);document.addEventListener("pointerdown",showTip);
 render();
 (async()=>{
   try{
