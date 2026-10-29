@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>لوحة متابعة التقدم</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f5f8;--card:#fff;--ink:#1b2a4e;--mute:#6b7488;--line:#e4e7ee;--track:#e8eaf0;--acc:#f07f3c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151d;--card:#1b202c;--ink:#e8ecf5;--mute:#9aa3b8;--line:#2c3446;--track:#2c3446}}
+:root[data-theme="dark"]{--bg:#12151d;--card:#1b202c;--ink:#e8ecf5;--mute:#9aa3b8;--line:#2c3446;--track:#2c3446}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Tajawal",system-ui,sans-serif;padding:16px;max-width:1200px;margin-inline:auto}
+h1{font-size:26px;margin:0}h2{font-size:16px;margin:0 0 12px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:3px solid var(--acc);padding-bottom:10px;margin-bottom:16px}
+.badge{font-size:13px;color:var(--mute)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.donut{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.donut svg{width:170px;height:170px;flex:none}
+.legend{flex:1;min-width:150px;font-size:13px}
+.legend div{display:flex;justify-content:space-between;gap:8px;padding:3px 0}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px}
+.row{margin:9px 0;font-size:13px}.row .l{display:flex;justify-content:space-between;margin-bottom:4px}
+.bar{height:10px;border-radius:6px;background:var(--track);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.big{font-size:34px;font-weight:800}
+.sub{color:var(--mute);font-size:12px}
+.gh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;color:#fff;padding:10px 14px;border-radius:10px;font-weight:700}
+.svc{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.svc:last-child{border:0}
+select{font:inherit;font-size:12px;padding:5px 6px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);max-width:48%}
+.note{background:#fff3cd;color:#664d03;padding:8px 12px;border-radius:10px;font-size:13px;margin-bottom:12px;display:none}
+.wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="top"><h1>لوحة متابعة التقدم</h1><span class="badge" id="sync">جارٍ التحميل…</span></div>
+<div class="note" id="note">وضع المعاينة: التعديلات لن تُحفظ لأن الحفظ المشترك غير متاح لك حالياً.</div>
+
+<div class="grid">
+  <div class="card"><h2>نسبة الإنجاز الكلي</h2><div class="donut" id="overall"></div></div>
+</div>
+<div class="grid">
+  <div class="card"><h2>مرحلة التصميم</h2><div id="design"></div></div>
+  <div class="card"><h2>مرحلة البرمجة</h2><div id="dev"></div></div>
+  <div class="card"><h2>التقدم حسب المجموعة</h2><div id="groups"></div></div>
+</div>
+<div class="grid" id="lists"></div>
+
+<script>
+const ST=[
+ {n:"جديدة",c:"#9aa3b2"},
+ {n:"اكتمل التحليل",c:"#14a89a"},
+ {n:"التصميم قيد التنفيذ",c:"#f07f3c"},
+ {n:"اكتمال تصميم UX",c:"#8e5bd0"},
+ {n:"بانتظار مراجعة التصميم",c:"#e5b200"},
+ {n:"البرمجة قيد التنفيذ",c:"#2f7be0"},
+ {n:"اكتمال برمجة UI",c:"#2e8b57"}
+];
+const G=[
+ {k:"f",n:"الخدمات التأسيسية",c:"#1f2f5c",s:["تسجيل الدخول الموحد للأفراد (نفاذ)","تسجيل الجهات الحكومية وممثليها من خلال إدارة النظام","تسجيل الجهات غير الربحية","تسجيل الجهات الخاصة","تسجيل دخول الجهات","تسجيل دخول موظفي الوزارة","تسجيل دخول موظفي الجهات التابعة للوزارة","إدارة الملف الشخصي للأفراد","إدارة ملف الجهات","إدارة الصلاحيات والأدوار","إدارة التفاوض","إدارة الخدمة (إلغاء وتعليق خدمة داخلياً)","إدارة الخدمات","إدارة مستوى الخدمة (SLA)"]},
+ {k:"a",n:"المجموعة الأولى",c:"#7b4fb0",s:["تصريح إقامة ندوة أدبية","تصريح إقامة أمسية شعرية","رخصة المتاحف الخاصة","تصريح إقامة عرض أزياء"]},
+ {k:"b",n:"المجموعة الثانية + التذاكر",c:"#2f7be0",s:["رخصة المتاحف العامة","رخصة نشاط الوكالة الأدبية","ترخيص خدمات الإعداد ما قبل الطباعة","رخصة تقديم خدمات المكتبات","رخصة صالات العرض للفنون البصرية","تصريح إقامة عرض فن بصري","تصريح إقامة عرض مسرح وفنون أدائية","رخصة محل بيع منتجات حرفية تراثية يدوية","التذاكر"]},
+ {k:"c",n:"المجموعة الثالثة",c:"#f07f3c",s:["ترخيص البيع بالتجزئة للكتب الجديدة والمستعملة","ترخيص دار نشر إلكتروني","ترخيص نشر الكتاب","ترخيص النسخ والاستنساخ","خدمة المترجم المعتمد","أختام الترجمة للمترجمين المعتمدين","أختام الترجمة لمكاتب الترجمة","رخصة نشاط مكاتب الترجمة"]}
+];
+// الحالة الافتراضية: خدمات اكتمل تحليلها في العرض الحالي
+const DONE=new Set(["f1","f2","f4","f5","f8","f9","f13","a1"]);
+const all=[];G.forEach(g=>g.s.forEach((n,i)=>all.push({id:g.k+(i+1),n,g})));
+let st={},col=null,canSave=false;
+const val=id=>st[id]!==undefined?st[id]:(DONE.has(id)?1:0);
+const pct=(a,b)=>b?Math.round(a/b*100):0;
+const $=id=>document.getElementById(id);
+
+function rows(items,total){return items.map(x=>`<div class="row"><div class="l"><span><span class="dot" style="background:${x.c}"></span>${x.n}</span><b>${x.k} خدمة · ${pct(x.k,total)}%</b></div><div class="bar"><i style="width:${pct(x.k,total)}%;background:${x.c}"></i></div></div>`).join("")}
+function stack(list,groups){return groups.map(([n,f])=>{const t=f.length;return `<div class="row"><div class="l"><span>${n}</span><b>${t}</b></div><div class="bar">${list.map(s=>{const k=f.filter(x=>s.t(val(x.id))).length;return `<i title="${s.n}: ${k}" style="width:${pct(k,t)}%;background:${s.c}"></i>`}).join("")}</div></div>`}).join("")}
+
+function render(){
+  const N=all.length,cnt=ST.map((_,i)=>all.filter(x=>val(x.id)===i).length);
+  const prog=all.reduce((a,x)=>a+val(x.id)/6,0)/N;
+  // overall donut
+  let off=0;const arcs=cnt.map((k,i)=>{const p=k/N*100,s=`<circle r="15.9155" cx="21" cy="21" fill="none" stroke="${ST[i].c}" stroke-width="5" stroke-dasharray="${p} ${100-p}" stroke-dashoffset="${-off}" transform="rotate(-90 21 21)"/>`;off+=p;return s}).join("");
+  $("overall").innerHTML=`<svg viewBox="0 0 42 42"><circle r="15.9155" cx="21" cy="21" fill="none" stroke="var(--track)" stroke-width="5"/>${arcs}<text x="21" y="22.5" text-anchor="middle" font-size="8" font-weight="800" fill="var(--ink)">${Math.round(prog*100)}%</text><text x="21" y="28" text-anchor="middle" font-size="2.8" fill="var(--mute)">الإنجاز الكلي</text></svg>
+  <div class="legend">${ST.map((s,i)=>`<div><span><span class="dot" style="background:${s.c}"></span>${s.n}</span><b>${cnt[i]}</b></div>`).join("")}<div class="sub">من إجمالي ${N} خدمة · الإنجاز محسوب بحسب موقع كل خدمة في مسار المراحل</div></div>`;
+  // design
+  const D=[["لم يبدأ التصميم",x=>x<2,"#9aa3b2"],["التصميم قيد التنفيذ",x=>x===2,ST[2].c],["اكتمال تصميم UX",x=>x===3,ST[3].c],["بانتظار مراجعة التصميم",x=>x===4,ST[4].c],["اكتمل التصميم وانتقل للبرمجة",x=>x>=5,"#2e8b57"]].map(([n,t,c])=>({n,t,c,k:all.filter(a=>t(val(a.id))).length}));
+  const dp=all.reduce((a,x)=>a+Math.min(Math.max(val(x.id)-1,0),4)/4,0)/N;
+  $("design").innerHTML=`<div class="big">${Math.round(dp*100)}%</div><div class="sub" style="margin-bottom:6px">متوسط إنجاز التصميم</div>`+rows(D,N);
+  // dev
+  const V=[["لم تبدأ البرمجة",x=>x<5,"#9aa3b2"],["البرمجة قيد التنفيذ",x=>x===5,ST[5].c],["اكتمال برمجة UI",x=>x===6,ST[6].c]].map(([n,t,c])=>({n,t,c,k:all.filter(a=>t(val(a.id))).length}));
+  const vp=all.reduce((a,x)=>a+(val(x.id)===6?1:val(x.id)===5?.5:0),0)/N;
+  $("dev").innerHTML=`<div class="big">${Math.round(vp*100)}%</div><div class="sub" style="margin-bottom:6px">متوسط إنجاز البرمجة</div>`+rows(V,N);
+  // groups
+  $("groups").innerHTML=G.map(g=>{const f=all.filter(x=>x.g===g),p=f.reduce((a,x)=>a+val(x.id)/6,0)/f.length;return `<div class="row"><div class="l"><span>${g.n} (${f.length})</span><b>${Math.round(p*100)}%</b></div><div class="bar"><i style="width:${p*100}%;background:${g.c}"></i></div></div>`}).join("");
+  // lists (rebuild only if no select is focused)
+  if(document.activeElement&&document.activeElement.tagName==="SELECT")return;
+  $("lists").innerHTML=G.map(g=>`<div class="card"><div class="gh" style="background:${g.c}"><span>${g.n}</span><span>${all.filter(x=>x.g===g&&val(x.id)===6).length}/${g.s.length} مكتملة UI</span></div>`+all.filter(x=>x.g===g).map(x=>`<div class="svc"><span>${x.id.slice(1)}. ${x.n}</span><select data-id="${x.id}" style="border-inline-start:4px solid ${ST[val(x.id)].c}">${ST.map((s,i)=>`<option value="${i}"${i===val(x.id)?" selected":""}>${s.n}</option>`).join("")}</select></div>`).join("")+`</div>`).join("");
+}
+document.addEventListener("change",async e=>{
+  const s=e.target.closest("select[data-id]");if(!s)return;
+  const id=s.dataset.id,v=+s.value;st[id]=v;s.blur();render();
+  if(col){try{await col.doc(id).set({s:v});$("sync").textContent="تم الحفظ ✓"}catch(err){$("sync").textContent="تعذر الحفظ — قد لا تملك صلاحية التعديل"}}
+});
+render();
+(async()=>{
+  try{
+    const V="10.14.1",B="https://www.gstatic.com/firebasejs/"+V+"/";
+    const {initializeApp}=await import(B+"firebase-app.js");
+    const F=await import(B+"firebase-firestore.js");
+    const app=initializeApp({
+      apiKey:"AIzaSyCrcfvC2VaScWfMO-4LyUwjk_HhBVYkdwk",
+      authDomain:"thaqafty-progress-dashboard.firebaseapp.com",
+      projectId:"thaqafty-progress-dashboard",
+      storageBucket:"thaqafty-progress-dashboard.firebasestorage.app",
+      messagingSenderId:"482408404834",
+      appId:"1:482408404834:web:038bd46c7255ed99b6be3b"
+    });
+    const db=F.getFirestore(app);
+    col={doc:id=>({set:d=>F.setDoc(F.doc(db,"services",id),d)})};
+    F.onSnapshot(F.collection(db,"services"),sn=>{st={};sn.docs.forEach(d=>{const x=d.data();if(x&&typeof x.s==="number")st[d.id]=x.s});$("sync").textContent="متصل · يتحدث مباشرة";render()},()=>{$("sync").textContent="خطأ في الاتصال — راجع قواعد Firestore"});
+  }catch(e){$("note").style.display="block";$("sync").textContent="معاينة فقط"}
+})();
+</script>
+</body>
+</html>
